@@ -2,22 +2,21 @@ package database
 
 import (
 	"fmt"
-	//"fmt"
+	"github.com/This-is-Ayush-Sharma/API-Uptime-Monitor/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
 	"os"
-	"github.com/This-is-Ayush-Sharma/API-Uptime-Monitor/internal/models"
 )
 
 var DB *gorm.DB
 
-func connect() {
+func Connect() *gorm.DB {
 	dsn := os.Getenv("DATABASE_URL")
 
 	if dsn == "" {
 		//		use default
-		dsn = "host=localhost user=postgres password=postgres dbname=uptime_monitor port=5432 sslmode=disable"
+		dsn = "host=localhost user=postgres password=password dbname=uptime_monitor port=5432 sslmode=disable"
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -33,4 +32,5 @@ func connect() {
 
 	DB = db
 	fmt.Println("Connected to database & Migrated.")
+	return db
 }
