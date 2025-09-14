@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/This-is-Ayush-Sharma/API-Uptime-Monitor/internal/dto"
 	"github.com/This-is-Ayush-Sharma/API-Uptime-Monitor/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -27,17 +28,14 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 // @Failure 400 {object} map[string]string
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
-	var req struct {
-		Email    string `json:"email" binding:"required,email"`
-		Password string `json:"password" binding:"required,min=8"`
-	}
+	var req dto.RegisterDTO
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.AuthService.Register(req.Email, req.Password)
+	user, err := h.AuthService.Register(req)
 
 	if err != nil {
 		// Check if the error is specifically due to an existing email
@@ -58,31 +56,22 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	var req struct {
-		Email    string `json:"email" binding:"required,email"`
-		Password string `json:"password" binding:"required,min=8"`
-	}
+	var req dto.LoginDTO
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.AuthService.FindByEmail(req.Email)
+	token, err := h.AuthService.Login(req)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found."})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	if !h.AuthService.CheckPassword(user, req.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Credentials."})
-		return
-	}
-
+	c.Header("Authorization", "Bearer "+token)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "user logged in",
-		"user":    user,
-		"token":   "Token_HERE",
 	})
 }
